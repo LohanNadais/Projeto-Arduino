@@ -1,33 +1,51 @@
 import serial
 import time
+from datetime import datetime
 
 # Configuração da porta serial
 porta_serial = 'COM3'  
 baud_rate = 9600     
 
+# Nome do arquivo de log
+arquivo_log = "log_status.txt"
+
 try:
-    # conectando porta serial
+    # Conectando porta serial
     arduino = serial.Serial(porta_serial, baud_rate)
     print("Conectado ao Arduino com sucesso.")
 except serial.SerialException:
-    print("Nao foi possivel conectar ao Arduino.")  
+    print("Não foi possível conectar ao Arduino.")  
     exit()
 
-time.sleep(2)  # para garantir que a conexão serial está estável
+time.sleep(2)  # Para garantir que a conexão serial está estável
 
 print("Monitorando o estado...")
 
+# Função para registrar o status no arquivo
+def registrar_status(status):
+    horario_atual = datetime.now().strftime("%d/%m/%Y - %H:%M")
+    linha = f"{status} - {horario_atual}\n"
+    
+    # Abre o arquivo e escreve a linha de status
+    with open(arquivo_log, "a") as arquivo:
+        arquivo.write(linha)
+    print(f"Registrado: {linha.strip()}")  # Mostra no console o registro feito
+
 try:
+    ultimo_status = None  # Variável para armazenar o último status recebido
+
     while True:
-        if arduino.in_waiting > 0:  # Verificando se ha dados disponiveis para leitura
+        if arduino.in_waiting > 0:  # Verificando se há dados disponíveis para leitura
             linha = arduino.readline().decode('utf-8').strip()
-            if linha == "OCUPADO":
-                print("Estado: OCUPADO")
-            elif linha == "VAGO":
-                print("Estado: VAGO")
+            
+            # Checa se o status mudou e registra se houve mudança
+            if linha in ["OCUPADO", "VAGO"] and linha != ultimo_status:
+                registrar_status(linha)
+                ultimo_status = linha
+
         time.sleep(1)  # Verifica a cada segundo
 except KeyboardInterrupt:
-    print("\nMonitoramento interrompido pelo usuario.")  
+    print("\nMonitoramento interrompido pelo usuário.")  
 finally:
     arduino.close()
-    print("Conexao serial encerrada.")
+    print("Conexão serial encerrada.")

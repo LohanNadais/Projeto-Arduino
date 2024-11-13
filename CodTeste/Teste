@@ -1,0 +1,40 @@
+import time
+from datetime import datetime
+
+# Nome do arquivo de log
+arquivo_log = "log_status_teste.txt"
+
+# Função para registrar o status no arquivo
+def registrar_status(status):
+    horario_atual = datetime.now().strftime("%d/%m/%Y - %H:%M")
+    linha = f"{status} - {horario_atual}\n"
+    
+    # Abre o arquivo e escreve a linha de status
+    with open(arquivo_log, "a") as arquivo:
+        arquivo.write(linha)
+    print(f"Registrado: {linha.strip()}")  # Mostra no console o registro feito
+
+print("Monitorando o estado... (Digite 'OCUPADO' ou 'VAGO' para simular uma entrada do Arduino)")
+ultimo_status = None  # Variável para armazenar o último status registrado
+
+try:
+    while True:
+        # Lê o input do usuário para simular o dado vindo do Arduino
+        linha = input("Digite o status ('OCUPADO', 'VAGO' ou 'SAIR' para encerrar): ").strip().upper()
+        
+        if linha == "SAIR":
+            print("Monitoramento encerrado pelo usuário.")
+            break
+        elif linha in ["OCUPADO", "VAGO"]:
+            # Checa se o status mudou e registra se houve mudança
+            if linha != ultimo_status:
+                registrar_status(linha)
+                ultimo_status = linha
+        else:
+            print("Entrada inválida. Digite 'OCUPADO', 'VAGO' ou 'SAIR'.")
+
+        time.sleep(1)  # Pausa de 1 segundo entre cada entrada
+except KeyboardInterrupt:
+    print("\nMonitoramento interrompido pelo usuário.")  
+finally:
+    print("Teste concluído.")
